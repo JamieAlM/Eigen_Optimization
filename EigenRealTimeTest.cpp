@@ -100,9 +100,9 @@ int main(int argc, char** argv)
 #include <Eigen/SparseCore> //SparseMatrix and SparseVector classes, matrix assembly, basic sparse linear algebra (including sparse triangular solvers)
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/CXX11/Tensor> 
-static const int nx = 128; //128; //64; //32; //4; //10;//64;//4; //128; 
-static const int ny = 128; //128; //64; //32; //4;//4; //10;//64;//4;//128; 
-static const int nz = 128; //16;
+static const int nx = 256; //128; //128; //64; //32; //4; //10;//64;//4; //128; 
+static const int ny = 256; //128; //128; //64; //32; //4;//4; //10;//64;//4;//128; 
+static const int nz = 256; //128; //16;
 static const int  mm = (nx* 3) / 2;
 static const int nyk = ny/2 + 1;
 static const int nxk = nx/2 + 1;
@@ -141,7 +141,9 @@ void EcalcPotSourcek_inertia3D(Eigen::Tensor<std::complex<double>, 3>& ne0k,Eige
 int potentialk3D(Eigen::Tensor<std::complex<double>, 3>& invnk, Eigen::Tensor<std::complex<double>, 3>& dndxk, Eigen::Tensor<std::complex<double>, 3>& dndyk, Eigen::Tensor<std::complex<double>, 3>& dndzk,Eigen::Tensor<std::complex<double>, 3>& phik, Eigen::Tensor<std::complex<double>, 3>& potSourcek,Eigen::Tensor<double, 3>& kx, Eigen::Tensor<double, 3>& ky, Eigen::Tensor<double, 3>& kz, Eigen::Tensor<double, 3>&  ninvksqu, double err_max, int max_iter);
 void EcalcV_ExBk3D(Eigen::Tensor<std::complex<double>, 3>& dphidxk,Eigen::Tensor<std::complex<double>, 3>& dphidyk,Eigen::Tensor<std::complex<double>, 3>& dphidzk, double B[], double B2, Eigen::Tensor<std::complex<double>, 3>& vexbkx, Eigen::Tensor<std::complex<double>, 3>& vexbky,Eigen::Tensor<std::complex<double>, 3>& vexbkz);
 void Ecalc_diamag3D(Eigen::Tensor<std::complex<double>, 3>& dpdxk,Eigen::Tensor<std::complex<double>, 3>& dpdyk,Eigen::Tensor<std::complex<double>, 3>& dpdzk, double B[], double B2, double qa, Eigen::Tensor<std::complex<double>, 3>& nak, Eigen::Tensor<std::complex<double>, 3>& diamagxk,Eigen::Tensor<std::complex<double>, 3>& diamagyk, Eigen::Tensor<std::complex<double>, 3>& diamagzk);
-double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3> vexbx, Eigen::Tensor<double, 3> vexby, Eigen::Tensor<double, 3> vexbz,Eigen::Tensor<double, 3> diamagxi,Eigen::Tensor<double, 3> diamagyi,  Eigen::Tensor<double, 3> diamagzi, Eigen::Tensor<double, 3> diamagxe, Eigen::Tensor<double, 3> diamagye, Eigen::Tensor<double, 3> diamagze,double cfl, double kmax, double maxdt);
+//double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3> vexbx, Eigen::Tensor<double, 3> vexby, Eigen::Tensor<double, 3> vexbz,Eigen::Tensor<double, 3> diamagxi,Eigen::Tensor<double, 3> diamagyi,  Eigen::Tensor<double, 3> diamagzi, Eigen::Tensor<double, 3> diamagxe, Eigen::Tensor<double, 3> diamagye, Eigen::Tensor<double, 3> diamagze,double cfl, double kmax, double maxdt);
+double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3>& vexbx, Eigen::Tensor<double, 3>& vexby, Eigen::Tensor<double, 3>& vexbz,Eigen::Tensor<double, 3>& diamagxi,Eigen::Tensor<double, 3>& diamagyi,  Eigen::Tensor<double, 3>& diamagzi, Eigen::Tensor<double, 3>& diamagxe, Eigen::Tensor<double, 3>& diamagye, Eigen::Tensor<double, 3>& diamagze,double cfl, double kmax, double maxdt);
+
 void ERK4(Eigen::Tensor<std::complex<double>, 3>& f, double dt, Eigen::Tensor<std::complex<double>, 3>& residual, Eigen::Tensor<std::complex<double>, 3>& source, int stage, Eigen::Tensor<std::complex<double>, 3>& fout);
 void Ecalc_residualt3D(Eigen::Tensor<std::complex<double>, 3>& voxk, Eigen::Tensor<std::complex<double>, 3>& voyk, Eigen::Tensor<std::complex<double>, 3>& vozk,Eigen::Tensor<std::complex<double>, 3>& tempink, Eigen::Tensor<std::complex<double>, 3>& tempoutk, Eigen::Tensor<double, 3>& kx, Eigen::Tensor<double, 3>& ky, Eigen::Tensor<double, 3>& kz);
 void Ecalc_residualn3D(Eigen::Tensor<std::complex<double>, 3>& vexbxk, Eigen::Tensor<std::complex<double>, 3>& vexbyk, Eigen::Tensor<std::complex<double>, 3>& vexbzk, Eigen::Tensor<std::complex<double>, 3>& nink, Eigen::Tensor<std::complex<double>, 3>& residnoutk, Eigen::Tensor<double, 3>& kx, Eigen::Tensor<double, 3>& ky,Eigen::Tensor<double, 3>& kz);
@@ -210,11 +212,11 @@ int main(){
     double A = (2 * EIGEN_PI)/Lx;
 	double A1 = (2 * EIGEN_PI)/ Ly;
 
-    Eigen::Tensor<double, 3> eXX(128,128,128); 
+    Eigen::Tensor<double, 3> eXX(nx,ny,nz); 
 	eXX.setZero(); 
-    Eigen::Tensor<double, 3> eYY(128,128,128); 
+    Eigen::Tensor<double, 3> eYY(nx,ny,nz); 
 	eYY.setZero(); 
-    Eigen::Tensor<double, 3> eZZ(128,128,128); 
+    Eigen::Tensor<double, 3> eZZ(nx,ny,nz); 
 	eZZ.setZero(); 
 
     
@@ -1422,7 +1424,7 @@ void Ecalc_diamag3D(Eigen::Tensor<std::complex<double>, 3>& dpdxk,Eigen::Tensor<
 	
 	
 }
-double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3> vexbx, Eigen::Tensor<double, 3> vexby, Eigen::Tensor<double, 3> vexbz,Eigen::Tensor<double, 3> diamagxi,Eigen::Tensor<double, 3> diamagyi,  Eigen::Tensor<double, 3> diamagzi, Eigen::Tensor<double, 3> diamagxe, Eigen::Tensor<double, 3> diamagye, Eigen::Tensor<double, 3> diamagze,double cfl, double kmax, double maxdt){
+double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3>& vexbx, Eigen::Tensor<double, 3>& vexby, Eigen::Tensor<double, 3>& vexbz,Eigen::Tensor<double, 3>& diamagxi,Eigen::Tensor<double, 3>& diamagyi,  Eigen::Tensor<double, 3>& diamagzi, Eigen::Tensor<double, 3>& diamagxe, Eigen::Tensor<double, 3>& diamagye, Eigen::Tensor<double, 3>& diamagze,double cfl, double kmax, double maxdt){
 		double *absArr;
 	    absArr = (double*) fftw_malloc(nx*ny *sizeof(double));
 		//memset(absArr, 42, (nx*(ny+1))* sizeof(double));
@@ -1467,14 +1469,14 @@ double Ecalc_dt3D(double U[], Eigen::Tensor<double, 3> vexbx, Eigen::Tensor<doub
         //Eigen::internal::set_is_malloc_allowed(true);
 		// try using min 
 		//dt = std::min(dt, maxdt);
-		
+		fftw_free(absArr);
 		if (dt < maxdt){
 		return dt;
 		}else {
 			return maxdt;
 		}
 		
-		fftw_free(absArr);
+		//fftw_free(absArr);
 	return 0;
 }
 void Ecalc_residualn3D(Eigen::Tensor<std::complex<double>, 3>& vexbxk, Eigen::Tensor<std::complex<double>, 3>& vexbyk, Eigen::Tensor<std::complex<double>, 3>& vexbzk, Eigen::Tensor<std::complex<double>, 3>& nink, Eigen::Tensor<std::complex<double>, 3>& residnoutk, Eigen::Tensor<double, 3>& kx, Eigen::Tensor<double, 3>& ky, Eigen::Tensor<double, 3>& kz){
