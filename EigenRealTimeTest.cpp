@@ -100,9 +100,9 @@ int main(int argc, char** argv)
 #include <Eigen/SparseCore> //SparseMatrix and SparseVector classes, matrix assembly, basic sparse linear algebra (including sparse triangular solvers)
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/CXX11/Tensor> 
-static const int nx = 256; //128; //128; //64; //32; //4; //10;//64;//4; //128; 
-static const int ny = 256; //128; //128; //64; //32; //4;//4; //10;//64;//4;//128; 
-static const int nz = 256; //128; //16;
+static const int nx = 128; //128; //64; //32; //4; //10;//64;//4; //128; 
+static const int ny = 128; //128; //64; //32; //4;//4; //10;//64;//4;//128; 
+static const int nz = 128; //16;
 static const int  mm = (nx* 3) / 2;
 static const int nyk = ny/2 + 1;
 static const int nxk = nx/2 + 1;
