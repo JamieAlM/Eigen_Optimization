@@ -18,10 +18,11 @@
 #include <assert.h>
 #include<valarray>
 #include <complex>
+#include"omp.h"  
 
-static const int nx = 256;//128;
-static const int ny = 256;//128; 
-static const int nz = 256;//128;
+static const int nx = 64;//256; //128;
+static const int ny = 64;//256; //128; 
+static const int nz = 64;//256; //128;
 static const int ncomp = 2;
 static const int nzk = nz/2 + 1;
 using namespace std;
@@ -52,6 +53,13 @@ void Laplaciank3D( double vark[][ncomp], double ksqu[], double derivative[][ncom
 void RK4(double f[][ncomp], double dt, double residual[][ncomp], double source[][ncomp], int stage, double fout[][ncomp]);
 
 //g++ MemoryLeakTest.cpp -lfftw3 -lm -ffast-math -fno-math-errno -march=native -Ofast -ggdb3 -o ../../../Datasim1/test.out && valgrind --track-origins=yes ./../../../Datasim1/test.out
+//parallel
+// g++ MemoryLeakTest.cpp -lfftw3 -lfftw3_omp -lm -ffast-math -fno-math-errno -march=native -Ofast -fopenmp -o ../../../Datasim1/test.out
+//profiling
+// g++ MemoryLeakTest.cpp -lfftw3 -lm -ffast-math -fno-math-errno -march=native -Ofast -pg -o ../../../Datasim1/test_gprof
+//./test_gprof
+//gprof test_gprof gmon.out > profile-data1.txt
+
 #define sizee 3
 #define IMAG 1
 #define REAL 0
@@ -106,12 +114,11 @@ int main(){
 	
 	
 
- 
 
 		
 	double *XX;
 	XX = (double*) fftw_malloc((nx*ny*nz) *sizeof(double));
-	memset(XX, 42, (nx*ny*nz) * sizeof(double)); 
+	memset(XX, 42, (nx*ny*nz) * sizeof(double)); //memset 42 initializes array to 1.42603e-105 
 
     double *YY;
 	YY = (double*) fftw_malloc((nx*ny*nz) *sizeof(double));
@@ -157,90 +164,90 @@ int main(){
     //FourierMesh3D(Lx, Ly, Lz, KXX, KYY, KZZ, ksqu, ninvksqu, FourierMeshType);
 	FourierMesh3D(Lx, Ly, Lz, kx, ky, kz, KXX, KYY, KZZ, ksqu, ninvksqu, FourierMeshType);
 
-	double *Theta;
+	double *Theta; //initialized in for loop
 	Theta = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Theta, 42, (nx*ny*nz)* sizeof(double));
+	//memset(Theta, 42, (nx*ny*nz)* sizeof(double));
 
     double *Phiz;
 	Phiz = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Phiz, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(Phiz, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *P0;
 	P0 = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(P0, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(P0, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *nep; //ne1
 	nep = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nep, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(nep, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *nebg; //ne0
 	nebg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nebg, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(nebg, 42, (nx*ny*nz)* sizeof(double)); 
 
 	double *neTot; //ne
 	neTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(neTot, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(neTot, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *Tip; //Ti_1
 	Tip = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Tip, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(Tip, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *Tep; //Te_1
 	Tep = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Tep, 42, (nx*ny*nz)* sizeof(double));
+	//memset(Tep, 42, (nx*ny*nz)* sizeof(double));
 
     double *Tibg; //Ti_0
 	Tibg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Tibg, 42, (nx*ny*nz)* sizeof(double)); 
+	//memset(Tibg, 42, (nx*ny*nz)* sizeof(double)); 
 
     double *Tebg; //Te_0
 	Tebg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(Tebg, 42, (nx*ny*nz)* sizeof(double));
+	//memset(Tebg, 42, (nx*ny*nz)* sizeof(double));
 
     double *TiTot; //Ti
 	TiTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(TiTot, 42, (nx*ny*nz)* sizeof(double));
+	//memset(TiTot, 42, (nx*ny*nz)* sizeof(double));
 
     double *TeTot; //Ti
 	TeTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(TeTot, 42, (nx*ny*nz)* sizeof(double));
+	//memset(TeTot, 42, (nx*ny*nz)* sizeof(double));
 
     double *phibg; //phi_0
 	phibg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(phibg, 42, (nx*ny*nz)* sizeof(double));
+	//memset(phibg, 42, (nx*ny*nz)* sizeof(double));
 
     double *phip; //phi1
 	phip = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(phip, 42, (nx*ny*nz)* sizeof(double));
+	//memset(phip, 42, (nx*ny*nz)* sizeof(double));
 
     double *phiTot; //phi
 	phiTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(phiTot, 42, (nx*ny*nz)* sizeof(double));
+	//memset(phiTot, 42, (nx*ny*nz)* sizeof(double));
 
     double *piTot; //phi
 	piTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(piTot, 42, (nx*ny*nz)* sizeof(double));
+	//memset(piTot, 42, (nx*ny*nz)* sizeof(double));
 
     double *peTot; //phi
 	peTot = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(peTot, 42, (nx*ny*nz)* sizeof(double));
+	//memset(peTot, 42, (nx*ny*nz)* sizeof(double));
 
     double *pibg; //pi0
 	pibg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(pibg, 42, (nx*ny*nz)* sizeof(double));
+	//memset(pibg, 42, (nx*ny*nz)* sizeof(double));
 
     double *pebg; //pe0
 	pebg = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(pebg, 42, (nx*ny*nz)* sizeof(double));
+	//memset(pebg, 42, (nx*ny*nz)* sizeof(double));
 
     double *pip; //pi1
 	pip = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(pip, 42, (nx*ny*nz)* sizeof(double));
+	//memset(pip, 42, (nx*ny*nz)* sizeof(double));
 
     double *pep; //pe1
 	pep = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(pep, 42, (nx*ny*nz)* sizeof(double));
-
+	//memset(pep, 42, (nx*ny*nz)* sizeof(double));
+	
 	double n0 = 1e11;
 	double Ampl_1 = -0.07;//min
 	double Ampl_2 = 0.07; //max
@@ -340,24 +347,21 @@ int main(){
 	memset(pepK, 42, (nx*ny*nzk)* sizeof(fftw_complex));
 
 	
-	/*double *TestOut; //ne
-	TestOut = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(TestOut, 42, (nx*ny*nz)* sizeof(double)); */
 
-	/*r2c3D(neTot, neK);
-	c2r3D(neK,TestOut);
+	//r2c3D(neTot, neK);
+	//c2r3D(neK,TestOut);
 
-	std::ofstream file1("KXX.txt");
-    if (file1.is_open())
-    {
-        for (int i = 0; i < nx; ++i) {
-        		for (int j = 0; j < ny; ++j) {
-            		for (int k = 0; k < nzk; ++k) {
-                        file1 << KXX[k + nzk * (j + ny * i)] << '\n'; 
-                    }
-                }
-        }
-    }*/
+	//std::ofstream file1("KXX.txt");
+    //if (file1.is_open())
+    //{
+    //    for (int i = 0; i < nx; ++i) {
+    //    		for (int j = 0; j < ny; ++j) {
+    //        		for (int k = 0; k < nzk; ++k) {
+    //                    file1 << KXX[k + nzk * (j + ny * i)] << '\n'; 
+    //                }
+    //            }
+    //    }
+    //}
 	r2c3D(neTot, neK);
     r2c3D(TiTot, TiK);
     r2c3D(TeTot, TeK);
@@ -614,19 +618,7 @@ int main(){
     Derivk3D(pipK, KZZ, dpidz1K);
 
 
-	/*c2r3D(dndxK,TestOut);
-
-	std::ofstream file1("dndx.txt");
-    if (file1.is_open())
-    {
-        for (int i = 0; i < nx; ++i) {
-        		for (int j = 0; j < ny; ++j) {
-            		for (int k = 0; k < nz; ++k) {
-                        file1 << TestOut[k + nz * (j + ny * i)] << '\n'; 
-                    }
-                }
-        }
-    }*/
+	
 
 	fftw_complex *vexbKx;
 	vexbKx = (fftw_complex*) fftw_malloc((nx*ny*nzk) * sizeof(fftw_complex));
@@ -914,7 +906,7 @@ int main(){
 
 	
     //begin time step loop here
-	for (int iter = 0; iter < iter_max; iter++){ //for (int iter = 0; iter < iter_max; iter++){
+	for (int iter = 0; iter < 1; iter++){ //for (int iter = 0; iter < iter_max; iter++){
 		// total veloc
 		//***************
 		c2r3D(vexbKx, vexbX);
@@ -949,7 +941,7 @@ int main(){
        
 		 
 
-        for (int stage = 0; stage < 4; stage++){ //for (int stage = 0; stage < 4; stage++){
+        for (int stage = 0; stage < 1; stage++){ //for (int stage = 0; stage < 4; stage++){
             
 
 			calc_residualn3D(vexbKx, vexbKy, vexbKz, neK, residualnK, KXX,  KYY, KZZ);
@@ -1161,7 +1153,7 @@ int main(){
     fftw_free(pipK); 
     fftw_free(pebgK); 
     fftw_free(pepK); 
-	fftw_free(dndxK);
+	/*fftw_free(dndxK);
 	fftw_free(dndyK);
     fftw_free(dndzK);
     fftw_free(dndx0K);
@@ -1275,7 +1267,7 @@ int main(){
 
 	fftw_free(residualK_phi);
 
-	fftw_free(sourcetK);
+	fftw_free(sourcetK);*/
 
 	//Data allocated by fftw_malloc must be deallocated by fftw_free and not by the ordinary free.
 
@@ -1465,53 +1457,56 @@ void FourierMesh3D(double Lx,double Ly,double Lz, double kx[], double ky[], doub
 	ninvksqu[0] = -1.;*/
 }
 void r2c3D(double rArr[], double cArr[][ncomp]){
-    //fftw_complex *input_array;
-	//input_array = (fftw_complex*) fftw_malloc((nx*ny*nz)*sizeof(fftw_complex));
-		
-		
-	//memcpy(input_array, rArr, (nx*ny*nz)*sizeof(fftw_complex));
-
-	//fftw_plan forward = fftw_plan_dft_3d(nx, ny, nz, input_array, cArr, FFTW_FORWARD, FFTW_ESTIMATE);
+   
+	//clock_t start_time1 = clock();
 	fftw_plan forward = fftw_plan_dft_r2c_3d(nx, ny, nz, &rArr[0], &cArr[0], FFTW_ESTIMATE);
-	//fftw_plan fftw_plan_dft_r2c_3d(int n0, int n1, int n2,double *in, fftw_complex *out,unsigned flags);
     fftw_execute(forward);
     fftw_destroy_plan(forward);
 	fftw_cleanup();
+	//clock_t end1 = clock();
+	//cout << "Serial Time in s: " <<  (double)(end1-start_time1) / CLOCKS_PER_SEC << "s\n";
 
-    //fftw_free(input_array);
 
 }
 void c2r3D(double cArr[][ncomp], double rArr[]){
-    fftw_complex *dummy;
+	//clock_t start_time1 = clock();
+	/*double start_time, run_time;
+	start_time = omp_get_wtime();
+    int N_Threads = omp_get_max_threads();
+	fftw_init_threads();
+	fftw_plan_with_nthreads(N_Threads);*/
+	
+	fftw_complex *dummy;
 	dummy = (fftw_complex*) fftw_malloc((nx*ny*nzk) * sizeof(fftw_complex));
 	//to not overwrite data set up dummy
 	for (int i = 0; i < nx; ++i) {
-        		for (int j = 0; j < ny; ++j) {
-            		for (int k = 0; k < nzk; ++k) {
-                        for(int l = 0; l<ncomp; ++l){
-                            dummy[k + nzk * (j + ny * i)][l] = cArr[k + nzk * (j + ny * i)][l]; 
-                        }
-                        
-                    }
+        for (int j = 0; j < ny; ++j) {
+            for (int k = 0; k < nzk; ++k) {
+                for(int l = 0; l<ncomp; ++l){
+                    dummy[k + nzk * (j + ny * i)][l] = cArr[k + nzk * (j + ny * i)][l]; 
                 }
-        }	
+                        
+            }
+        }
+    }	
 	
-	//fftw_plan backward = fftw_plan_dft_3d(nx, ny, nz, cArr, output_array, FFTW_BACKWARD, FFTW_ESTIMATE);
 	fftw_plan backward = fftw_plan_dft_c2r_3d(nx, ny, nz, &dummy[0], &rArr[0], FFTW_ESTIMATE);
-
 	fftw_execute(backward);
     fftw_destroy_plan(backward);
 	fftw_cleanup();
 
-	/*memcpy(rArr,output_array, (nx*ny*nz) * sizeof(double)); //size of double fixes mem error
-		
-		for (int i = 0; i < nx; ++i) {
-        		for (int j = 0; j < ny; ++j) {
-            		for (int k = 0; k < nz; ++k) {
-                        rArr[k + nz * (j + ny * i)] = rArr[k + nz * (j + ny * i)]/(nx*ny*nz) ;
-                    }
-                }
-        }*/
+	//scalArr2DMult(rArr, 1.0 / (nx*ny), rArr); //renormalize
+	for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
+            for (int k = 0; k < nzk; ++k) {
+                rArr[k + nzk * (j + ny * i)] = rArr[k + nzk * (j + ny * i)]/(nx*ny*nz) ;
+            }
+        }
+    }
+	//clock_t end1 = clock();
+	/*run_time = omp_get_wtime() - start_time;
+	cout << " Parallel Time in s: " <<  run_time << "s\n";*/
+	//cout << "Serial Time in s: " <<  (double)(end1-start_time1) / CLOCKS_PER_SEC << "s\n";
     fftw_free(dummy);
 
 }
@@ -1684,43 +1679,43 @@ void CollFreqk_inertia3D(double nek[][ncomp], double Tik[][ncomp], double Tek[][
 
 	double *nuin; //pe1
 	nuin = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuin, 42, (nx*ny*nz)*sizeof(double));
+	//memset(nuin, 42, (nx*ny*nz)*sizeof(double));
 
     double *nuii; //pe1
 	nuii = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuii, 42, (nx*ny*nz)* sizeof(double));
+	//memset(nuii, 42, (nx*ny*nz)* sizeof(double));
 
     double *nuie; //pe1
 	nuie = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuie, 42, (nx*ny*nz)* sizeof(double));
+	//memset(nuie, 42, (nx*ny*nz)* sizeof(double));
 
     double *nuen; //pe1
 	nuen = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuen, 42, (nx*ny*nz)* sizeof(double));
+	//memset(nuen, 42, (nx*ny*nz)* sizeof(double));
 
     double *nuei; //pe1
 	nuei = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuei, 42, (nx*ny*nz)* sizeof(double));
+	//memset(nuei, 42, (nx*ny*nz)* sizeof(double));
 
     double *nuee; //pe1
 	nuee = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(nuee, 42, (nx*ny*nz)* sizeof(double));
+	//memset(nuee, 42, (nx*ny*nz)* sizeof(double));
 
     double *isigP; //
 	isigP = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(isigP, 42, (nx*ny*nz)* sizeof(double));
+	//memset(isigP, 42, (nx*ny*nz)* sizeof(double));
 
     double *invn; //
 	invn = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(invn, 42, (nx*ny*nz)* sizeof(double));
+	//memset(invn, 42, (nx*ny*nz)* sizeof(double));
 
     double *hallE; //
 	hallE = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(hallE, 42, (nx*ny*nz)* sizeof(double));
+	//memset(hallE, 42, (nx*ny*nz)* sizeof(double));
 
     double *hallI; //
 	hallI = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(hallI, 42, (nx*ny*nz)* sizeof(double));
+	//memset(hallI, 42, (nx*ny*nz)* sizeof(double));
 
 
 	// Begin big loop to calculating everything.
@@ -1816,7 +1811,7 @@ double calc_dt3D(double U[], double vexbx[], double vexby[],double vexbz[] ,doub
 	//double bar = absolute(U);
 		double *absArr;
 	    absArr = (double*) fftw_malloc((nx*ny*nz) *sizeof(double));
-		memset(absArr, 42, (nx*ny*nz)* sizeof(double));
+		//memset(absArr, 42, (nx*ny*nz)* sizeof(double));
 		/*
 		absArr = (double*) fftw_malloc(nx*nyk *sizeof(double));
 		memset(absArr, 42, nx*nyk* sizeof(double));
@@ -2001,7 +1996,7 @@ double max_absComp3D(double arr3D[][ncomp]){
 	// Take the absolute value
 	double *absArr;
 	absArr = (double*) fftw_malloc((nx*ny*nz)*sizeof(double));
-	memset(absArr, 42, (nx*ny*nz)* sizeof(double)); //test here, if you pass 2D array to func decays to pointer and sizeof doesn't give size of array
+	//memset(absArr, 42, (nx*ny*nz)* sizeof(double)); //test here, if you pass 2D array to func decays to pointer and sizeof doesn't give size of array
 
 
 	//absComp(arr3D, absArr);
